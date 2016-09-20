@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script type="text/javascript" src="https://code.jquery.com/jquery.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: Helvetica;
+        }
+
+        .generator {
+            margin: 1em;
+        }
+
+        canvas {
+            margin: 1em;
+        }
+    </style>
+
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var z = $('#z').val();
+            document.getElementById("canvas").getContext("2d").clearRect(0, 0, screen.width, screen.height);
+
+            function setPixel(imageData, x, y, r, g, b, a) {
+                index = (x + y * imageData.width) * 4;
+                imageData.data[index + 0] = r;
+                imageData.data[index + 1] = g;
+                imageData.data[index + 2] = b;
+                imageData.data[index + 3] = a;
+            }
+
+            var canvas = document.getElementById("canvas");
+            can = canvas.getContext("2d");
+
+            //width, height of canvas
+            width = screen.width;
+            height = screen.height;
+            var zSq = z * z;
+
+            $("#canvas").attr('height', height);
+            $("#canvas").attr('width', width);
+            //create image data
+            var grid = []
+            var width = 500;
+            for(i=0;i<width;i++){
+              grid[i] = [];
+              for(j=0;j<width;j++){
+                grid[i][j] = Math.floor(Math.random()*2);
+              }
+            }
+            var emptyGrid = [];
+            for(i=0;i<width;i++){
+              emptyGrid[i] = [];
+              for(j=0;j<width;j++){
+                emptyGrid[i][j] = 0;
+              }
+            }
+            grid[10][10]=1;
+            grid[10][11]=1;
+            grid[10][12]=1;
+            grid[9][12]=1;
+            grid[8][11]=1;
+            imageData = can.createImageData(width, height);
+            function print(squareArray){
+              for(line=0;line<width;line++){
+                for(pixel=0;pixel<width;pixel++)
+                setPixel(imageData, line, pixel, squareArray[line][pixel]*255, squareArray[line][pixel]*255, squareArray[line][pixel]*255, 255);
+              }
+              can.putImageData(imageData, 0, 0);
+            }
+            function mod(n, m) {
+                    return ((n % m) + m) % m;
+            }
+            print(grid);
+            function accessElem(xIndex,yIndex){
+              return grid[mod(xIndex,width)][mod(yIndex,width)];
+            }
+            function nextIterate(inputGrid){
+              var nextGrid = [];
+              for(i=0;i<width;i++){
+                nextGrid[i] = [];
+                for(j=0;j<width;j++){
+                  nextGrid[i][j] = 0;
+                }
+              }
+              for(x=0;x<width;x++){
+                for(y=0;y<width;y++){
+                  var currentCell = inputGrid[x][y]
+                  var neighborSum = accessElem(x-1,y-1)+accessElem(x-1,y)+accessElem(x-1,y+1)+accessElem(x,y-1)+accessElem(x,y+1)+accessElem(x+1,y-1)+accessElem(x+1,y)+accessElem(x+1,y+1)
+                  if(currentCell===1){
+                    if(neighborSum===2||neighborSum===3){
+                      nextGrid[x][y] = 1;
+                    }else{
+                      nextGrid[x][y] = 0;
+                    }
+                  }else if(currentCell===0){
+                    if(neighborSum===3){
+                      nextGrid[x][y] = 1;
+                    }
+                  }
+                }
+              }
+
+              return nextGrid
+            }
+            var interval = setInterval(function() {
+                  print(grid);
+                  grid = nextIterate(grid);
+            }, 10);
+            $(".stop").click(function(){
+              clearInterval(interval);
+            })
+            $(".resume").click(function(){
+              interval = setInterval(function() {
+                    print(grid);
+                    grid = nextIterate(grid);
+              }, 10);
+            })
+        });
+    </script>
+</head>
+
+<body>
+    <div class="data"></data>
+    <div class="stop">PAUSE</div>
+    <div class="resume">RESUME</div>
+    <canvas id="canvas" width="400" , height="400">
+Random Canvas
+</canvas>
+</body>
+
+</html>
