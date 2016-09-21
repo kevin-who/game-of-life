@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="utf-8">
+    <title>Conway's game of life</title>
     <script type="text/javascript" src="https://code.jquery.com/jquery.min.js"></script>
     <style>
         body {
@@ -42,7 +43,6 @@
             //width, height of canvas
             width = screen.width;
             height = screen.height;
-            var zSq = z * z;
 
             $("#canvas").attr('height', height);
             $("#canvas").attr('width', width);
@@ -52,7 +52,7 @@
             for(i=0;i<width;i++){
               grid[i] = [];
               for(j=0;j<width;j++){
-                grid[i][j] = Math.floor(Math.random()*2);
+                grid[i][j] = Math.floor(Math.random()*1.25);
               }
             }
             var emptyGrid = [];
@@ -67,6 +67,8 @@
             grid[10][12]=1;
             grid[9][12]=1;
             grid[8][11]=1;
+            var keepAlives = [2,3]
+            var makeAlives = [3]
             imageData = can.createImageData(width, height);
             function print(squareArray){
               for(line=0;line<width;line++){
@@ -95,13 +97,13 @@
                   var currentCell = inputGrid[x][y]
                   var neighborSum = accessElem(x-1,y-1)+accessElem(x-1,y)+accessElem(x-1,y+1)+accessElem(x,y-1)+accessElem(x,y+1)+accessElem(x+1,y-1)+accessElem(x+1,y)+accessElem(x+1,y+1)
                   if(currentCell===1){
-                    if(neighborSum===2||neighborSum===3){
+                    if(keepAlives.includes(neighborSum)){
                       nextGrid[x][y] = 1;
                     }else{
                       nextGrid[x][y] = 0;
                     }
                   }else if(currentCell===0){
-                    if(neighborSum===3){
+                    if(makeAlives.includes(neighborSum)){
                       nextGrid[x][y] = 1;
                     }
                   }
@@ -118,19 +120,47 @@
               clearInterval(interval);
             })
             $(".resume").click(function(){
+
+              clearInterval(interval);
               interval = setInterval(function() {
                     print(grid);
                     grid = nextIterate(grid);
               }, 10);
             })
+            $(".generator").submit(function(event) {
+              event.preventDefault();
+              keepAlives = $('#keepalive').val().split(" ").map(function(elem){return parseInt(elem)});
+              makeAlives = $('#makealive').val().split(" ").map(function(elem){return parseInt(elem)});
+              clearInterval(interval);
+              for(i=0;i<width;i++){
+                grid[i] = [];
+                for(j=0;j<width;j++){
+                  grid[i][j] = Math.floor(Math.random()*1.25);
+                }
+              }
+              interval = setInterval(function() {
+                    print(grid);
+                    grid = nextIterate(grid);
+              }, 10);
+            });
         });
     </script>
 </head>
 
 <body>
-    <div class="data"></data>
-    <div class="stop">PAUSE</div>
-    <div class="resume">RESUME</div>
+  <form class="generator" id="form">
+      <h2>Conway's game of life</h2>
+      <div>Keep a cell alive for these numbers of surrounding cells (between 0 and 8 inclusive, separate by spaces):</div>
+      <input id="keepalive" type="text" value="2 3">
+      <br><br>
+      <div>Make a dead cell alive for these numbers of surrounding cells (between 0 and 8 inclusive, separate by spaces):</div>
+      <input id="makealive" type="text" value="3">
+      <br><br>
+      <input type="submit" text="generate">
+      <br><br>
+      <div class="stop">PAUSE</div>
+      <div class="resume">RESUME</div>
+  </form>
     <canvas id="canvas" width="400" , height="400">
 Random Canvas
 </canvas>
